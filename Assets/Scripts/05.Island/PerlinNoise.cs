@@ -2,53 +2,41 @@
 
 public class PerlinNoise : MonoBehaviour
 {
-    public int width = 256;
-    public int height = 256;
-    
-    public float xOrg;
-    public float yOrg;
-    
-    public float scale = 1.0f;
-
-    public string seed;
-    public bool useRandomSeed;
-    
-    private Texture2D noiseTex;
-    private Color[] pix;
-    private Renderer rend;
-    
-    private void Awake()
+    public float[,] GenerateMap(int width, int height, float scale, float octaves, float persistance, float lacunarity, float xOrg, float yOrg)
     {
-        noiseTex = new Texture2D(width, height);
-        pix = new Color[noiseTex.width * noiseTex.height];
-        rend = GetComponent<Renderer>();
-        rend.material.mainTexture = noiseTex;
-
-    }
-    
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0)) CalcNoise();
-    }
-    
-    private void CalcNoise()
-    {
-        if (useRandomSeed) seed = Time.time.ToString();
-        System.Random pseudoRandom = new System.Random(seed.GetHashCode());
-        xOrg = pseudoRandom.Next(0, 99999);
-        yOrg = pseudoRandom.Next(0, 99999);
-
-        for (float y = 0; y < noiseTex.height; y++)
+        float[,] noiseMap = new float[width, height];
+        scale = Mathf.Max(0.0001f, scale);
+        float maxNoiseHeight = float.MinValue;
+        float minNoiseHeight = float.MaxValue;
+        for (int x = 0; x < width; x++)
         {
-            for (float x = 0; x< noiseTex.width; x++)
+            for (int y = 0; y < height; y++)
             {
-                float xCoord = xOrg + x / noiseTex.width * scale;
-                float yCoord = yOrg + y / noiseTex.height * scale;
-                float sample = Mathf.PerlinNoise(xCoord, yCoord);
-                pix[(int)(y * noiseTex.width + x)] = new Color(sample, sample, sample);
+                float amplitude = 1;
+                float frequency = 1;
+                float noiseHeight = 0;
+
+                for (int i = 0; i < octaves; i++)
+                {
+                    float xCoord = xOrg + x / scale * frequency;
+                    float yCoord = yOrg + y / scale * frequency;
+                    float perlinValue = Mathf.PerlinNoise(xCoord, yCoord) * 2 - 1;
+                    noiseHeight += perlinValue * amplitude;
+                    amplitude *= persistance;
+                    frequency *= lacunarity;
+                }
+                if (noiseHeight > maxNoiseHeight) maxNoiseHeight = noiseHeight;
+                else if (noiseHeight < minNoiseHeight) minNoiseHeight = noiseHeight;
+                noiseMap[x, y] = noiseHeight;
             }
         }
-        noiseTex.SetPixels(pix);
-        noiseTex.Apply();
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0;y < height; y++)
+            {
+                noiseMap[x, y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, noiseMap[x, y]);
+            }
+        }
+        return noiseMap;
     }
 }
