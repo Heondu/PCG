@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 enum TILE {ROAD = 0, WALL, CHECK, START};
 
@@ -15,6 +16,12 @@ public class MazeGeneratorByRecursiveBacktracking : MonoBehaviour
     private Vector2Int[] direction = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
     private Vector2Int pos = Vector2Int.zero;
     private Stack<Vector2Int> stackDir = new Stack<Vector2Int>();
+    [SerializeField]
+    private Tilemap tilemap;
+    [SerializeField]
+    private Tile tile;
+    [SerializeField]
+    private Color[] colors;
 
     private void Update()
     {
@@ -38,6 +45,8 @@ public class MazeGeneratorByRecursiveBacktracking : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 map[x, y] = (int)TILE.WALL;
+                OnDrawTile(x, y);
+                SetTileColor(x, y);
             }
         }
     }
@@ -64,6 +73,7 @@ public class MazeGeneratorByRecursiveBacktracking : MonoBehaviour
     private IEnumerator Check()
     {
         map[pos.x, pos.y] = (int)TILE.START;
+        SetTileColor(pos.x, pos.y);
         do
         {
             int index = -1;
@@ -82,6 +92,7 @@ public class MazeGeneratorByRecursiveBacktracking : MonoBehaviour
                     stackDir.Push(direction[index]);
                     pos += direction[index];
                     map[pos.x, pos.y] = (int)TILE.CHECK;
+                    SetTileColor(pos.x, pos.y);
                 }
             }
             else
@@ -89,6 +100,7 @@ public class MazeGeneratorByRecursiveBacktracking : MonoBehaviour
                 for (int i = 0; i < 2; i++)
                 {
                     map[pos.x, pos.y] = (int)TILE.ROAD;
+                    SetTileColor(pos.x, pos.y);
                     pos += stackDir.Pop() * -1;
                 }
             }
@@ -109,25 +121,22 @@ public class MazeGeneratorByRecursiveBacktracking : MonoBehaviour
         return true;
     }
 
-    private void OnDrawGizmos()
+    private void SetTileColor(int x, int y)
     {
-        if (map != null)
+        Vector3Int pos = new Vector3Int(-width / 2 + x, -height / 2 + y, 0);
+        tilemap.SetTileFlags(pos, TileFlags.None);
+        switch (map[x, y])
         {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    switch (map[x, y])
-                    {
-                        case (int)TILE.ROAD: Gizmos.color = Color.white; break;
-                        case (int)TILE.WALL: Gizmos.color = Color.black; break;
-                        case (int)TILE.CHECK: Gizmos.color = Color.yellow; break;
-                        case (int)TILE.START: Gizmos.color = Color.red; break;
-                    }
-                    Vector3 pos = new Vector3(-width / 2 + x + 0.5f, -height / 2 + y + 0.5f, 0);
-                    Gizmos.DrawCube(pos, Vector3.one);
-                }
-            }
+            case (int)TILE.ROAD: tilemap.SetColor(pos, colors[0]); break;
+            case (int)TILE.WALL: tilemap.SetColor(pos, colors[1]); break;
+            case (int)TILE.CHECK: tilemap.SetColor(pos, colors[2]); break;
+            case (int)TILE.START: tilemap.SetColor(pos, colors[3]); break;
         }
+    }
+
+    private void OnDrawTile(int x, int y)
+    {
+        Vector3Int pos = new Vector3Int(-width / 2 + x, -height / 2 + y, 0);
+        tilemap.SetTile(pos, tile);
     }
 }

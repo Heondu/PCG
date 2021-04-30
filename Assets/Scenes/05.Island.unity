@@ -261,8 +261,8 @@ MonoBehaviour:
   seed: 
   useRandomSeed: 0
   AutoUpdateMap: 0
-  useColorMap: 0
-  useGradientMap: 0
+  useColorMap: 1
+  useGradientMap: 1
   perlinNoise: {fileID: 469687130}
   gradient: {fileID: 469687131}
   mapDisplay: {fileID: 469687129}

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class MazeGeneratorByBinaryTree : MonoBehaviour
 {
@@ -9,6 +10,12 @@ public class MazeGeneratorByBinaryTree : MonoBehaviour
     private int[,] map;
     private const int ROAD = 0;
     private const int WALL = 1;
+    [SerializeField]
+    private Tilemap tilemap;
+    [SerializeField]
+    private Tile tile;
+    [SerializeField]
+    private Color[] colors;
 
     private void Update()
     {
@@ -24,11 +31,8 @@ public class MazeGeneratorByBinaryTree : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                if (x == 1 && y == 0) map[x, y] = ROAD;
-                else if (x == width - 2 && y == height - 1) map[x, y] = ROAD;
-                else if (x == 0 || x == width - 1 || y == 0 || y == height - 1) map[x, y] = WALL;
-                else if (x % 2 == 0 || y % 2 == 0) map[x, y] = WALL;
-                else map[x, y] = ROAD;
+                OnDrawTile(x, y);
+                SetTileColor(x, y);
             }
         }
 
@@ -36,29 +40,46 @@ public class MazeGeneratorByBinaryTree : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
+                if (x == 1 && y == 0) map[x, y] = ROAD;
+                else if (x == width - 2 && y == height - 1) map[x, y] = ROAD;
+                else if (x == 0 || x == width - 1 || y == 0 || y == height - 1) map[x, y] = WALL;
+                else if (x % 2 == 0 || y % 2 == 0) map[x, y] = WALL;
+                else map[x, y] = ROAD;
+                SetTileColor(x, y);
+            }
+        }
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                Vector2Int pos;
                 if (x % 2 == 0 || y % 2 == 0) continue;
                 if (x == width - 2 && y == height - 2) continue;
-                if (x == width - 2) map[x, y + 1] = ROAD;
-                else if (y == height - 2) map[x + 1, y] = ROAD;
-                else if (Random.Range(0, 2) == 0) map[x + 1, y] = ROAD;
-                else map[x, y + 1] = ROAD;
+                if (x == width - 2) pos = new Vector2Int(x, y + 1);
+                else if (y == height - 2) pos = new Vector2Int(x + 1, y);
+                else if (Random.Range(0, 2) == 0) pos = new Vector2Int(x + 1, y);
+                else pos = new Vector2Int(x, y + 1);
+                map[pos.x, pos.y] = ROAD;
+                SetTileColor(pos.x, pos.y);
             }
         }
     }
 
-    private void OnDrawGizmos()
+    private void SetTileColor(int x, int y)
     {
-        if (map != null)
+        Vector3Int pos = new Vector3Int(-width / 2 + x, -height / 2 + y, 0);
+        tilemap.SetTileFlags(pos, TileFlags.None);
+        switch (map[x, y])
         {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    Gizmos.color = (map[x, y] == WALL) ? Color.black : Color.white;
-                    Vector3 pos = new Vector3(-width / 2 + x + 0.5f, -height / 2 + y + 0.5f, 0);
-                    Gizmos.DrawCube(pos, Vector3.one);
-                }
-            }
+            case ROAD: tilemap.SetColor(pos, colors[0]); break;
+            case WALL: tilemap.SetColor(pos, colors[1]); break;
         }
+    }
+
+    private void OnDrawTile(int x, int y)
+    {
+        Vector3Int pos = new Vector3Int(-width / 2 + x, -height / 2 + y, 0);
+        tilemap.SetTile(pos, tile);
     }
 }
