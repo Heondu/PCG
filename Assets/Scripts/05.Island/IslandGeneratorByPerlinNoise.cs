@@ -14,38 +14,31 @@ public class IslandGeneratorByPerlinNoise : MonoBehaviour
 
     public string seed;
     public bool useRandomSeed;
-    public bool AutoUpdateMap;
+
     public bool useColorMap;
     public bool useGradientMap;
 
-    [SerializeField]
-    private PerlinNoise perlinNoise;
-    [SerializeField]
-    private Gradient gradient;
-    [SerializeField]
-    private MapDisplay mapDisplay;
+    [SerializeField] private PerlinNoise perlinNoise;
+    [SerializeField] private Gradient gradient;
+    [SerializeField] private MapDisplay mapDisplay;
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (useRandomSeed) seed = Time.time.ToString();
-            System.Random pseudoRandom = new System.Random(seed.GetHashCode());
-            xOrg = pseudoRandom.Next(0, 99999);
+            if (useRandomSeed) seed = Time.time.ToString(); //시드
+            System.Random pseudoRandom = new System.Random(seed.GetHashCode()); //의사 난수
+            xOrg = pseudoRandom.Next(0, 99999); //의사 난수로 부터 랜덤 값 추출
             yOrg = pseudoRandom.Next(0, 99999);
-            GenerateMap();
-        }
-        if (AutoUpdateMap)
-        {
             GenerateMap();
         }
     }
 
     private void GenerateMap()
     {
-        float[,] noiseMap = perlinNoise.GenerateMap(width, height, scale, octaves, persistance, lacunarity, xOrg, yOrg);
-        float[,] gradientMap = gradient.GenerateMap(width, height);
-        if (useGradientMap) mapDisplay.DrawNoiseMap(noiseMap, gradientMap, useColorMap);
+        float[,] noiseMap = perlinNoise.GenerateMap(width, height, scale, octaves, persistance, lacunarity, xOrg, yOrg); //노이즈 맵 생성
+        float[,] gradientMap = gradient.GenerateMap(width, height); //그라디언트 맵 생성
+        if (useGradientMap) mapDisplay.DrawNoiseMap(noiseMap, gradientMap, useColorMap); //노이즈 맵과 그라디언트 맵 결합
         else mapDisplay.DrawNoiseMap(noiseMap, noiseMap, useColorMap);
     }
 }

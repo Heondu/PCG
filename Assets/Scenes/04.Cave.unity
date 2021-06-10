@@ -230,8 +230,9 @@ MonoBehaviour:
   width: 50
   height: 50
   seed: 
-  useRandomSeed: 0
+  useRandomSeed: 1
   randomFillPercent: 50
+  smoothNum: 5
   tilemap: {fileID: 524674544}
   tile: {fileID: 11400000, guid: 52e3cfb323433c244b3dc831367b6428, type: 2}
   colors:
